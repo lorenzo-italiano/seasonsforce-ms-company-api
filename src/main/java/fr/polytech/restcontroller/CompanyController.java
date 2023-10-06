@@ -1,7 +1,7 @@
 package fr.polytech.restcontroller;
 
 import fr.polytech.model.Company;
-import fr.polytech.model.CompanyDetails;
+import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,19 +23,19 @@ public class CompanyController {
     }
 
     @GetMapping("/{id}")
-    public CompanyDetails getCompanyById(UUID id) {
+    public CompanyDetailsDTO getCompanyById(UUID id) {
         return companyService.getCompanyById(id);
     }
 
     @PostMapping("/")
-    public Company createCompany(CompanyDetails company) {
+    public Company createCompany(@RequestBody CompanyDetailsDTO company) {
         return companyService.createCompany(company);
     }
 
-    @PutMapping("/")
-    public Company updateCompany(CompanyDetails company) {
-        return companyService.updateCompany(company);
-    }
+//    @PutMapping("/")
+//    public Company updateCompany(CompanyDetails company) {
+//        return companyService.updateCompany(company);
+//    }
 
     @DeleteMapping("/{id}")
     public void deleteCompany(UUID id) {
