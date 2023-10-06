@@ -9,3 +9,7 @@ docker build -t company-api .
 cd ../postgres-image
 
 docker build -t company-db .
+
+cd ../minio-image
+
+docker build -t company-minio .
