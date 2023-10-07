@@ -22,7 +22,8 @@ public class CompanyService {
     // Initializing logger
     private final Logger logger = LoggerFactory.getLogger(CompanyService.class);
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private CompanyRepository companyRepository;
@@ -85,17 +86,27 @@ public class CompanyService {
     }
 
     // TODO verify if this request works
+    /*
+    * Get a company by its id.
+    * @param id: the id of the company to return.
+    * @return a detailed version of the company.
+    * @throws NotFoundException if the company was not found.
+     */
     public CompanyDetailsDTO getCompanyById(UUID id) throws NotFoundException {
         Company company = companyRepository.findById(id).orElse(null);
 
-        String adresseServiceUrl = "lb://address-api/api/v1/address/";
-        AddressDTO addressDTO = null;
         if (company != null) {
-            addressDTO = restTemplate.getForObject(adresseServiceUrl,  AddressDTO.class, company.getAddressId());
+            // Fetching address infos from address microservice
+            String adresseServiceUrl = "lb://address-api/api/v1/address/";
+            AddressDTO addressDTO = restTemplate.getForObject(adresseServiceUrl,  AddressDTO.class, company.getAddressId());
 
+            // TODO If the address is not found, throw an exception ?
+
+            // Return the detailed company
             return new CompanyDetailsDTO(company.getId(), company.getName(), company.getLogoUrl(), company.getDescription(), company.getEmployeesNumberRange(), addressDTO.getStreet(), addressDTO.getNumber(), addressDTO.getCity(), addressDTO.getZipCode(), addressDTO.getCountry());
         }
 
+        // If the company is not found, throw an exception
         throw new NotFoundException("Company not found");
     }
 
