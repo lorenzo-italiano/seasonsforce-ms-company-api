@@ -77,6 +77,9 @@ public class CompanyService {
         return companyRepository.save(companyReturn);
     }
 
+    /*
+    * Get all companies.
+     */
     public List<Company> getAllCompanies() {
         return companyRepository.findAll();
     }
