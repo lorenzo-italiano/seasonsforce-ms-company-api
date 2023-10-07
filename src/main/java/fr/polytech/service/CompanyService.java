@@ -92,6 +92,7 @@ public class CompanyService {
     * @param id: the id of the company to return.
     * @return a detailed version of the company.
     * @throws NotFoundException if the company was not found.
+    * @throws HttpClientErrorException if the address microservice returns an error.
      */
     public CompanyDetailsDTO getCompanyById(UUID id) throws NotFoundException, HttpClientErrorException {
         Company company = companyRepository.findById(id).orElse(null);
@@ -126,12 +127,22 @@ public class CompanyService {
         throw new NotFoundException("Company not found");
     }
 
-    public Company updateCompany(CompanyDetailsDTO company) {
+    /*
+    * Update a company.
+    * @param company The company to update.
+    * @return The updated company.
+    * @throws NotFoundException If the company was not found.
+    * @throws HttpClientErrorException If the address microservice returns an error.
+     */
+    public Company updateCompany(CompanyDetailsDTO company) throws NotFoundException, HttpClientErrorException{
+        logger.info("Starting the update of a company");
+
         Company storedCompany = companyRepository.findById(company.getId()).orElse(null);
 
         if (storedCompany == null) {
-            //TODO throw exception instead
-            return null;
+            logger.error("Error while updating a company: company not found");
+            // If the company is not found, throw an exception
+            throw new NotFoundException("Company not found");
         }
 
         // TODO extract method
@@ -140,26 +151,33 @@ public class CompanyService {
         storedCompany.setLogoUrl(company.getLogoUrl());
         storedCompany.setName(company.getName());
 
-        // Créez un en-tête avec le type de contenu approprié
+        // Create new address DTO
+        AddressDTO addressDTO = new AddressDTO(company.getAddressStreet(), company.getAddressNumber(), company.getAddressCity(), company.getAddressZipCode(), company.getAddressCountry());
+
+        // Creating address in address microservice
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(addressDTO, headers);
 
+        // Sending the request to address microservice
+        ResponseEntity<UUID> responseEntity = restTemplate.exchange(
+                "lb://address-api/api/v1/address/",
+                HttpMethod.POST,
+                requestEntity,
+                UUID.class
+        );
 
-        // Configurez votre demande avec l'en-tête
-//        HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(company.getAddressDTO(), headers);
+        // Get the response, if the status code is 201, then the address was created successfully
+        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
+            UUID createdAddressId = responseEntity.getBody();
+            storedCompany.setAddressId(createdAddressId);
+        } else {
+            logger.error("Error while creating an address while creating a company");
+            // If the status code is not 201, then throw the exception to the client
+            throw new HttpClientErrorException(responseEntity.getStatusCode());
+        }
 
-        String adresseServiceUrl = "lb://address-api/api/v1/address/";
-//        UUID addressId = restTemplate.postForObject(adresseServiceUrl, requestEntity, UUID.class);
-//        ResponseEntity<UUID> addressId = restTemplate.exchange(adresseServiceUrl, HttpMethod.POST, company.getAddress(), UUID.class);
-
-//        if (addressId != null) {
-//            storedCompany.setAddressId(addressId);
-//        }
-//        else{
-//            //TODO throw exception instead
-//            return null;
-//        }
-
+        logger.info("Completed update of a company");
         return companyRepository.save(storedCompany);
     }
 
