@@ -35,6 +35,8 @@ public class CompanyService {
      */
     public Company createCompany(CompanyDetailsDTO company) {
 
+        logger.info("Starting the creation of a company");
+
         // Create a new company
         Company companyReturn = new Company();
         companyReturn.setDescription(company.getDescription());
@@ -63,9 +65,13 @@ public class CompanyService {
             UUID createdAddressId = responseEntity.getBody();
             companyReturn.setAddressId(createdAddressId);
         } else {
+            logger.error("Error while creating an address while creating a company");
             // If the status code is not 201, then throw the exception to the client
             throw new HttpClientErrorException(responseEntity.getStatusCode());
         }
+
+        logger.info("Completed creation of a company");
+        logger.debug("Created new company: " + companyReturn.toString());
 
         // Save the company in the database and return it
         return companyRepository.save(companyReturn);
