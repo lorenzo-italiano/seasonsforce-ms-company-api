@@ -1,11 +1,18 @@
 package fr.polytech.model;
 
+import java.util.UUID;
+
 public class AddressDTO {
+
+    private UUID id;
     private String street;
     private String number;
     private String city;
     private String zipCode;
     private String country;
+
+    public AddressDTO() {
+    }
 
     public AddressDTO(String street, String number, String city, String zipCode, String country) {
         this.street = street;
@@ -13,6 +20,14 @@ public class AddressDTO {
         this.city = city;
         this.zipCode = zipCode;
         this.country = country;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getStreet() {
