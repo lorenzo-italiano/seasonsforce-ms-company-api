@@ -85,6 +85,8 @@ public class CompanyService {
         return companyRepository.findAll();
     }
 
+    // TODO add getDetailedCompanyById
+
     /*
     * Get a company by its id.
     * @param id: the id of the company to return.
@@ -124,47 +126,54 @@ public class CompanyService {
         throw new NotFoundException("Company not found");
     }
 
-//    public Company updateCompany(CompanyDetails company) {
-//        Company storedCompany = companyRepository.findById(company.getId()).orElse(null);
-//
-//        if (storedCompany == null) {
+    public Company updateCompany(CompanyDetailsDTO company) {
+        Company storedCompany = companyRepository.findById(company.getId()).orElse(null);
+
+        if (storedCompany == null) {
+            //TODO throw exception instead
+            return null;
+        }
+
+        // TODO extract method
+        storedCompany.setDescription(company.getDescription());
+        storedCompany.setEmployeesNumberRange(company.getEmployeesNumberRange());
+        storedCompany.setLogoUrl(company.getLogoUrl());
+        storedCompany.setName(company.getName());
+
+        // Créez un en-tête avec le type de contenu approprié
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+
+        // Configurez votre demande avec l'en-tête
+//        HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(company.getAddressDTO(), headers);
+
+        String adresseServiceUrl = "lb://address-api/api/v1/address/";
+//        UUID addressId = restTemplate.postForObject(adresseServiceUrl, requestEntity, UUID.class);
+//        ResponseEntity<UUID> addressId = restTemplate.exchange(adresseServiceUrl, HttpMethod.POST, company.getAddress(), UUID.class);
+
+//        if (addressId != null) {
+//            storedCompany.setAddressId(addressId);
+//        }
+//        else{
 //            //TODO throw exception instead
 //            return null;
 //        }
-//
-//        // TODO extract method
-//        storedCompany.setDescription(company.getDescription());
-//        storedCompany.setEmployeesNumberRange(company.getEmployeesNumberRange());
-//        storedCompany.setLogoUrl(company.getLogoUrl());
-//        storedCompany.setName(company.getName());
-//
-//        // Créez un en-tête avec le type de contenu approprié
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//
-//        // Configurez votre demande avec l'en-tête
-////        HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(company.getAddressDTO(), headers);
-//
-//        String adresseServiceUrl = "lb://address-api/api/v1/address/";
-////        UUID addressId = restTemplate.postForObject(adresseServiceUrl, requestEntity, UUID.class);
-////        ResponseEntity<UUID> addressId = restTemplate.exchange(adresseServiceUrl, HttpMethod.POST, company.getAddress(), UUID.class);
-//
-////        if (addressId != null) {
-////            storedCompany.setAddressId(addressId);
-////        }
-////        else{
-////            //TODO throw exception instead
-////            return null;
-////        }
-//
-//        return companyRepository.save(storedCompany);
-//    }
+
+        return companyRepository.save(storedCompany);
+    }
 
     /*
     * Delete a company by its id.
      */
-    public void deleteCompany(UUID id) {
+    public void deleteCompany(UUID id) throws NotFoundException {
+        Company storedCompany = companyRepository.findById(id).orElse(null);
+
+        if (storedCompany == null) {
+            // If the company is not found, throw an exception
+            throw new NotFoundException("Company not found");
+        }
+
         companyRepository.deleteById(id);
     }
 
