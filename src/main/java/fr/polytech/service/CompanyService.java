@@ -55,7 +55,7 @@ public class CompanyService {
 
         // Sending the request to address microservice
         ResponseEntity<UUID> responseEntity = restTemplate.exchange(
-                "lb://address-api/api/v1/address/", // Remplacez par l'URL correcte de votre adresse API.
+                "lb://address-api/api/v1/address/",
                 HttpMethod.POST,
                 requestEntity,
                 UUID.class
@@ -85,22 +85,36 @@ public class CompanyService {
         return companyRepository.findAll();
     }
 
-    // TODO verify if this request works
     /*
     * Get a company by its id.
     * @param id: the id of the company to return.
     * @return a detailed version of the company.
     * @throws NotFoundException if the company was not found.
      */
-    public CompanyDetailsDTO getCompanyById(UUID id) throws NotFoundException {
+    public CompanyDetailsDTO getCompanyById(UUID id) throws NotFoundException, HttpClientErrorException {
         Company company = companyRepository.findById(id).orElse(null);
 
         if (company != null) {
             // Fetching address infos from address microservice
-            String adresseServiceUrl = "lb://address-api/api/v1/address/";
-            AddressDTO addressDTO = restTemplate.getForObject(adresseServiceUrl,  AddressDTO.class, company.getAddressId());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<UUID> requestEntity = new HttpEntity<>(null, headers);
 
-            // TODO If the address is not found, throw an exception ?
+            // Sending the request to address microservice
+            ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
+                    "lb://address-api/api/v1/address/" + company.getAddressId(),
+                    HttpMethod.GET,
+                    requestEntity,
+                    AddressDTO.class
+            );
+
+            if(responseEntity.getStatusCode() != HttpStatus.OK){
+                logger.error("Error while fetching address infos while getting a company");
+                // If the status code is not 200, then throw the exception to the client
+                throw new HttpClientErrorException(responseEntity.getStatusCode());
+            }
+
+            AddressDTO addressDTO = responseEntity.getBody();
 
             // Return the detailed company
             return new CompanyDetailsDTO(company.getId(), company.getName(), company.getLogoUrl(), company.getDescription(), company.getEmployeesNumberRange(), addressDTO.getStreet(), addressDTO.getNumber(), addressDTO.getCity(), addressDTO.getZipCode(), addressDTO.getCountry());
