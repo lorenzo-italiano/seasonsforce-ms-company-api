@@ -32,10 +32,10 @@ public class CompanyController {
         return companyService.createCompany(company);
     }
 
-//    @PutMapping("/")
-//    public Company updateCompany(CompanyDetails company) {
-//        return companyService.updateCompany(company);
-//    }
+    @PutMapping("/")
+    public Company updateCompany(@RequestBody CompanyDetailsDTO company) {
+        return companyService.updateCompany(company);
+    }
 
     @DeleteMapping("/{id}")
     public void deleteCompany(UUID id) {
