@@ -85,10 +85,25 @@ public class CompanyService {
         return companyRepository.findAll();
     }
 
-    // TODO add getDetailedCompanyById
-
     /*
     * Get a company by its id.
+    * @param id: the id of the company to return.
+    * @return the company.
+    * @throws NotFoundException if the company was not found.
+     */
+    public Company getCompanyById(UUID id) throws NotFoundException {
+        Company company = companyRepository.findById(id).orElse(null);
+
+        if (company == null) {
+            // If the company is not found, throw an exception
+            throw new NotFoundException("Company not found");
+        }
+
+        return company;
+    }
+
+    /*
+    * Get the detailed version of a company by its id.
     * @param id: the id of the company to return.
     * @return a detailed version of the company.
     * @throws NotFoundException if the company was not found.

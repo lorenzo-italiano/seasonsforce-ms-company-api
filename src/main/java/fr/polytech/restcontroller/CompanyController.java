@@ -22,6 +22,10 @@ public class CompanyController {
         return companyService.getAllCompanies();
     }
 
+    @GetMapping("/{id}")
+    public Company getCompanyById(@PathVariable("id") UUID id) {
+        return companyService.getCompanyById(id);
+    }
     @GetMapping("/{id}/detailed")
     public CompanyDetailsDTO getDetailedCompanyById(@PathVariable("id") UUID id) {
         return companyService.getDetailedCompanyById(id);
