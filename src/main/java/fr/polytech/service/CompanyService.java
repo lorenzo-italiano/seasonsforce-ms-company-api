@@ -82,6 +82,7 @@ public class CompanyService {
     * Get all companies.
      */
     public List<Company> getAllCompanies() {
+        logger.info("Getting all companies");
         return companyRepository.findAll();
     }
 
@@ -93,12 +94,15 @@ public class CompanyService {
      */
     public Company getCompanyById(UUID id) throws NotFoundException {
         Company company = companyRepository.findById(id).orElse(null);
+        logger.info("Getting company with id " + id);
 
         if (company == null) {
+            logger.error("Error while getting a company: company not found");
             // If the company is not found, throw an exception
             throw new NotFoundException("Company not found");
         }
 
+        logger.info("Returning company with id " + id);
         return company;
     }
 
@@ -200,13 +204,18 @@ public class CompanyService {
     * Delete a company by its id.
      */
     public void deleteCompany(UUID id) throws NotFoundException {
+        logger.info("Starting the deletion of a company");
         Company storedCompany = companyRepository.findById(id).orElse(null);
 
         if (storedCompany == null) {
+            logger.error("Error while deleting a company: company not found");
             // If the company is not found, throw an exception
             throw new NotFoundException("Company not found");
         }
 
+        logger.info("Completed deletion of a company");
+
+        // Delete the company
         companyRepository.deleteById(id);
     }
 
