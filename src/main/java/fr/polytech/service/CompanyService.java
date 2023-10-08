@@ -34,7 +34,7 @@ public class CompanyService {
     * @return The created company.
     * @throws HttpClientErrorException If the address microservice returns an error.
      */
-    public Company createCompany(CompanyDetailsDTO company) {
+    public Company createCompany(CompanyDetailsDTO company) throws HttpClientErrorException{
 
         logger.info("Starting the creation of a company");
 
