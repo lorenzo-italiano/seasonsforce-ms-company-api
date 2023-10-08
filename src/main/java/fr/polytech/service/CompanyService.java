@@ -94,7 +94,7 @@ public class CompanyService {
     * @throws NotFoundException if the company was not found.
     * @throws HttpClientErrorException if the address microservice returns an error.
      */
-    public CompanyDetailsDTO getCompanyById(UUID id) throws NotFoundException, HttpClientErrorException {
+    public CompanyDetailsDTO getDetailedCompanyById(UUID id) throws NotFoundException, HttpClientErrorException {
         Company company = companyRepository.findById(id).orElse(null);
 
         if (company != null) {
