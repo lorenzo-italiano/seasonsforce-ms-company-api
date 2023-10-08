@@ -64,7 +64,7 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deleteCompany(UUID id) {
+    public ResponseEntity<Boolean> deleteCompany(@PathVariable("id") UUID id) {
         try {
             companyService.deleteCompany(id);
             return ResponseEntity.ok(true);
