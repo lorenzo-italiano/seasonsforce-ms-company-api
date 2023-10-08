@@ -3,47 +3,74 @@ package fr.polytech.restcontroller;
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.service.CompanyService;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/company")
-// TODO handle errors and exceptions.
 public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
 
     @GetMapping("/")
-    public List<Company> getAllCompanies() {
-        return companyService.getAllCompanies();
+    public ResponseEntity<List<Company>> getAllCompanies() {
+        return ResponseEntity.ok(companyService.getAllCompanies());
     }
 
     @GetMapping("/{id}")
-    public Company getCompanyById(@PathVariable("id") UUID id) {
-        return companyService.getCompanyById(id);
+    public ResponseEntity<Company> getCompanyById(@PathVariable("id") UUID id) {
+        try {
+            return ResponseEntity.ok(companyService.getCompanyById(id));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
     @GetMapping("/{id}/detailed")
-    public CompanyDetailsDTO getDetailedCompanyById(@PathVariable("id") UUID id) {
-        return companyService.getDetailedCompanyById(id);
+    public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@PathVariable("id") UUID id) {
+        try {
+            return ResponseEntity.ok(companyService.getDetailedCompanyById(id));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping("/")
-    public Company createCompany(@RequestBody CompanyDetailsDTO company) {
-        return companyService.createCompany(company);
+    public ResponseEntity<Company> createCompany(@RequestBody CompanyDetailsDTO company) {
+        try {
+            return ResponseEntity.ok(companyService.createCompany(company));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/")
-    public Company updateCompany(@RequestBody CompanyDetailsDTO company) {
-        return companyService.updateCompany(company);
+    public ResponseEntity<Company> updateCompany(@RequestBody CompanyDetailsDTO company) {
+        try {
+            return ResponseEntity.ok(companyService.updateCompany(company));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCompany(UUID id) {
-        companyService.deleteCompany(id);
+    public ResponseEntity<Boolean> deleteCompany(UUID id) {
+        try {
+            companyService.deleteCompany(id);
+            return ResponseEntity.ok(true);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
