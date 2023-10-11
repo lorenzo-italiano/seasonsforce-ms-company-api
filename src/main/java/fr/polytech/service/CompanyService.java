@@ -139,7 +139,7 @@ public class CompanyService {
             AddressDTO addressDTO = responseEntity.getBody();
 
             // Return the detailed company
-            return new CompanyDetailsDTO(company.getId(), company.getName(), company.getLogoUrl(), company.getDescription(), company.getEmployeesNumberRange(), addressDTO.getStreet(), addressDTO.getNumber(), addressDTO.getCity(), addressDTO.getZipCode(), addressDTO.getCountry());
+            return new CompanyDetailsDTO(company.getId(), company.getName(), company.getLogoUrl(), company.getDescription(), company.getEmployeesNumberRange(), addressDTO.getStreet(), addressDTO.getNumber(), addressDTO.getCity(), addressDTO.getZipCode(), addressDTO.getCountry(), company.getSiretNumber(), company.getDocumentsUrl());
         }
 
         // If the company is not found, throw an exception
