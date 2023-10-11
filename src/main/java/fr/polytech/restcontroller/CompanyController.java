@@ -9,6 +9,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,51 +31,86 @@ public class CompanyController {
     @Autowired
     private HashService hashService;
 
+    /**
+     * Get all companies.
+     *
+     * @return List of all companies.
+     */
     @GetMapping("/")
     public ResponseEntity<List<Company>> getAllCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
     }
 
+    /**
+     * Get company by id.
+     *
+     * @param id Company id.
+     * @return Company with the specified id.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Company> getCompanyById(@PathVariable("id") UUID id) {
         try {
             return ResponseEntity.ok(companyService.getCompanyById(id));
-        } catch (Exception e) {
+        } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
+    /**
+     * Get company by id with all its details.
+     *
+     * @param id Company id.
+     * @return Company with the specified id and all its details.
+     */
     @GetMapping("/{id}/detailed")
     public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@PathVariable("id") UUID id) {
         try {
             return ResponseEntity.ok(companyService.getDetailedCompanyById(id));
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    /**
+     * Create a new company.
+     *
+     * @param company Company to create.
+     * @return Created company.
+     */
     @PostMapping("/")
     public ResponseEntity<Company> createCompany(@RequestBody CompanyDetailsDTO company) {
         try {
             return ResponseEntity.ok(companyService.createCompany(company));
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    /**
+     * Update a company.
+     *
+     * @param company Company to update.
+     * @return Updated company.
+     */
     @PutMapping("/")
     public ResponseEntity<Company> updateCompany(@RequestBody CompanyDetailsDTO company) {
         try {
             return ResponseEntity.ok(companyService.updateCompany(company));
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    /**
+     * Delete a company.
+     *
+     * @param id Company id.
+     * @return True if the company was deleted, false otherwise.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deleteCompany(@PathVariable("id") UUID id) {
         try {
@@ -85,8 +121,15 @@ public class CompanyController {
         }
     }
 
+    /**
+     * Change the company's logo.
+     *
+     * @param id Company id.
+     * @param file New logo.
+     * @return True if the logo was changed, false otherwise.
+     */
     @PostMapping("/logo/{id}")
-    public ResponseEntity<String> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Boolean> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
             CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
 
@@ -101,14 +144,23 @@ public class CompanyController {
 
             companyService.updateCompany(company);
 
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
+            return ResponseEntity.ok(true);
+        } catch (HttpClientErrorException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             return ResponseEntity.badRequest().build();
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
+    /**
+     * Add a document to the company.
+     *
+     * @param id Company id.
+     * @param file Document to add.
+     * @return True if the document was added, false otherwise.
+     */
     @PostMapping("/document/{id}")
-    public ResponseEntity<String> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
             CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
 
@@ -124,13 +176,11 @@ public class CompanyController {
 
             companyService.updateCompany(company);
 
-            return ResponseEntity.ok().build();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.ok(true);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | HttpClientErrorException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }
