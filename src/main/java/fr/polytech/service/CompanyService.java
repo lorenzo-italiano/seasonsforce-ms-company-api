@@ -28,11 +28,12 @@ public class CompanyService {
     @Autowired
     private CompanyRepository companyRepository;
 
-    /*
-    * Create a company.
-    * @param company The company to create.
-    * @return The created company.
-    * @throws HttpClientErrorException If the address microservice returns an error.
+    /**
+     * Create a company.
+     *
+     * @param company The company to create.
+     * @return The created company.
+     * @throws HttpClientErrorException If the address microservice returns an error.
      */
     public Company createCompany(CompanyDetailsDTO company) throws HttpClientErrorException{
 
@@ -78,19 +79,20 @@ public class CompanyService {
         return companyRepository.save(companyReturn);
     }
 
-    /*
-    * Get all companies.
+    /**
+     * Get all companies.
      */
     public List<Company> getAllCompanies() {
         logger.info("Getting all companies");
         return companyRepository.findAll();
     }
 
-    /*
-    * Get a company by its id.
-    * @param id: the id of the company to return.
-    * @return the company.
-    * @throws NotFoundException if the company was not found.
+    /**
+     * Get a company by its id.
+     *
+     * @param id: the id of the company to return.
+     * @return the company.
+     * @throws NotFoundException if the company was not found.
      */
     public Company getCompanyById(UUID id) throws NotFoundException {
         Company company = companyRepository.findById(id).orElse(null);
@@ -106,12 +108,13 @@ public class CompanyService {
         return company;
     }
 
-    /*
-    * Get the detailed version of a company by its id.
-    * @param id: the id of the company to return.
-    * @return a detailed version of the company.
-    * @throws NotFoundException if the company was not found.
-    * @throws HttpClientErrorException if the address microservice returns an error.
+    /**
+     * Get the detailed version of a company by its id.
+     *
+     * @param id: the id of the company to return.
+     * @return a detailed version of the company.
+     * @throws NotFoundException if the company was not found.
+     * @throws HttpClientErrorException if the address microservice returns an error.
      */
     public CompanyDetailsDTO getDetailedCompanyById(UUID id) throws NotFoundException, HttpClientErrorException {
         Company company = companyRepository.findById(id).orElse(null);
@@ -146,12 +149,13 @@ public class CompanyService {
         throw new NotFoundException("Company not found");
     }
 
-    /*
-    * Update a company.
-    * @param company The company to update.
-    * @return The updated company.
-    * @throws NotFoundException If the company was not found.
-    * @throws HttpClientErrorException If the address microservice returns an error.
+    /**
+     * Update a company.
+     *
+     * @param company The company to update.
+     * @return The updated company.
+     * @throws NotFoundException If the company was not found.
+     * @throws HttpClientErrorException If the address microservice returns an error.
      */
     public Company updateCompany(CompanyDetailsDTO company) throws NotFoundException, HttpClientErrorException{
         logger.info("Starting the update of a company");
@@ -200,8 +204,8 @@ public class CompanyService {
         return companyRepository.save(storedCompany);
     }
 
-    /*
-    * Delete a company by its id.
+    /**
+     * Delete a company by its id.
      */
     public void deleteCompany(UUID id) throws NotFoundException {
         logger.info("Starting the deletion of a company");
