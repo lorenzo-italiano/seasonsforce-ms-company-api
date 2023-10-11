@@ -5,6 +5,7 @@ import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.service.CompanyService;
 import fr.polytech.service.HashService;
 import fr.polytech.service.MinioService;
+import io.minio.errors.MinioException;
 import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -149,6 +150,8 @@ public class CompanyController {
             return ResponseEntity.badRequest().build();
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (MinioException e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -181,6 +184,8 @@ public class CompanyController {
             return ResponseEntity.badRequest().build();
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (MinioException e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
