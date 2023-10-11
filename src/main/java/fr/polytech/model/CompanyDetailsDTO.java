@@ -1,5 +1,6 @@
 package fr.polytech.model;
 
+import java.util.List;
 import java.util.UUID;
 
 // This DTO is used to get data from front and save it as multiple objects
@@ -18,7 +19,11 @@ public class CompanyDetailsDTO {
     private String addressZipCode;
     private String addressCountry;
 
-    public CompanyDetailsDTO(UUID id, String name, String logoUrl, String description, String employeesNumberRange, String addressStreet, String addressNumber, String addressCity, String addressZipCode, String addressCountry) {
+    private String siretNumber;
+
+    private List<String> documentsUrl;
+
+    public CompanyDetailsDTO(UUID id, String name, String logoUrl, String description, String employeesNumberRange, String addressStreet, String addressNumber, String addressCity, String addressZipCode, String addressCountry, String siretNumber, List<String> documentsUrl) {
         this.id = id;
         this.name = name;
         this.logoUrl = logoUrl;
@@ -29,6 +34,8 @@ public class CompanyDetailsDTO {
         this.addressCity = addressCity;
         this.addressZipCode = addressZipCode;
         this.addressCountry = addressCountry;
+        this.siretNumber = siretNumber;
+        this.documentsUrl = documentsUrl;
     }
 
     public UUID getId() {
@@ -109,5 +116,21 @@ public class CompanyDetailsDTO {
 
     public void setAddressCountry(String addressCountry) {
         this.addressCountry = addressCountry;
+    }
+
+    public String getSiretNumber() {
+        return siretNumber;
+    }
+
+    public void setSiretNumber(String siretNumber) {
+        this.siretNumber = siretNumber;
+    }
+
+    public List<String> getDocumentsUrl() {
+        return documentsUrl;
+    }
+
+    public void setDocumentsUrl(List<String> documentsUrl) {
+        this.documentsUrl = documentsUrl;
     }
 }
