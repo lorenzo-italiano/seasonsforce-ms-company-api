@@ -3,14 +3,29 @@ package fr.polytech.restcontroller;
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.service.CompanyService;
+import fr.polytech.service.HashService;
+import fr.polytech.service.MinioService;
+import io.minio.GetObjectArgs;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MinioClient;
+import io.minio.errors.MinioException;
+import io.minio.http.Method;
 import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/company")
@@ -18,6 +33,12 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
+
+    @Autowired
+    private MinioService minioService;
+
+    @Autowired
+    private HashService hashService;
 
     @GetMapping("/")
     public ResponseEntity<List<Company>> getAllCompanies() {
@@ -32,6 +53,7 @@ public class CompanyController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @GetMapping("/{id}/detailed")
     public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@PathVariable("id") UUID id) {
         try {
@@ -73,4 +95,52 @@ public class CompanyController {
         }
     }
 
+    @PostMapping("/logo/{id}")
+    public ResponseEntity<String> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
+        try {
+            CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
+
+            String hashedBucketName = hashService.hash("logo-" + id.toString());
+
+            System.out.println(hashedBucketName);
+
+            minioService.uploadFile(hashedBucketName, "logo", file);
+
+            // TODO: Change base url to a variable.
+            company.setLogoUrl("http://localhost:9000/" + hashedBucketName + "/logo");
+
+            companyService.updateCompany(company);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/document/{id}")
+    public ResponseEntity<String> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
+        try {
+            CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
+
+            String hashedBucketName = hashService.hash("document-" + id.toString());
+
+            System.out.println(hashedBucketName);
+
+            minioService.uploadFile(hashedBucketName, file.getOriginalFilename(), file);
+
+            List<String> documentsUrl = company.getDocumentsUrl();
+
+            documentsUrl.add("http://localhost:9000/" + hashedBucketName + "/" + file.getOriginalFilename());
+
+            companyService.updateCompany(company);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
 }
