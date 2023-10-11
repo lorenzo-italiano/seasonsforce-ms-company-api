@@ -9,43 +9,41 @@ import java.security.NoSuchAlgorithmException;
 @Service
 public class HashService {
 
-    public String hash(String stringToHash) {
+    /**
+     * Hashes a string using the SHA-256 algorithm.
+     *
+     * @param stringToHash The string to hash.
+     * @return The hashed string.
+     */
+    public String hash(String stringToHash) throws NoSuchAlgorithmException {
 
         try {
-            // Créez un objet MessageDigest avec l'algorithme SHA-512
+            // Create a SHA-512 MessageDigest instance
             MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-            // Convertissez la chaîne en tableau d'octets (bytes)
+            // Convert the input string to a byte array and put it into the MessageDigest
             byte[] bytes = stringToHash.getBytes(StandardCharsets.UTF_8);
 
-            // Mettez les données à hacher dans le MessageDigest
+            // Perform the hashing
             md.update(bytes);
 
-            // Effectuez le hachage
+            // Retrieve the hash's bytes
             byte[] hash = md.digest();
 
-            // Convertissez le tableau d'octets en une représentation hexadécimale
+            // Convert it to hexadecimal format
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 hexString.append(String.format("%02x", b));
             }
 
-            // Tronquez les deux derniers caractères
+            // Truncate the hash to 62 characters (the maximum length of a bucket name)
             String truncatedHash = hexString.substring(0, 62);
 
             return truncatedHash;
 
-//            System.out.println("Chaîne d'origine: " + input);
-//            System.out.println("SHA-512 Hash: " + hexString.toString());
-
         } catch (NoSuchAlgorithmException e) {
-            System.err.println("L'algorithme SHA-512 n'est pas disponible.");
-        } catch (Exception e) {
-            System.err.println("Une erreur s'est produite : " + e.getMessage());
+            throw new NoSuchAlgorithmException("The SHA-256 algorithm is not available.");
         }
-
-        return "";
     }
-
 
 }
