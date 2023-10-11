@@ -18,27 +18,32 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MinioService {
 
+    /**
+     * Upload a file to Minio.
+     *
+     * @param bucketName: The name of the bucket.
+     * @param objectName: The name of the object.
+     * @param multipartFile: The file to upload.
+     * @throws IOException: If an I/O error occurs.
+     * @throws NoSuchAlgorithmException: If the algorithm SHA-256 is not available.
+     * @throws InvalidKeyException: If the key is invalid.
+     */
     public void uploadFile(String bucketName, String objectName, MultipartFile multipartFile)
-            throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+            throws IOException, NoSuchAlgorithmException, InvalidKeyException, MinioException {
         try {
-            System.out.println("dans uploadFile");
-
-            // Créez un MinioClient avec les informations de configuration.
+            // Create a minioClient with the MinIO server, its access key and secret key.
             MinioClient minioClient = MinioClient.builder()
                     .endpoint("http://company-minio:9000")
                     .credentials("company", "companycompany")
                     .region("europe")
                     .build();
 
-            System.out.println("après minioClient");
-
-            // Vérifiez si le bucket existe, sinon créez-le.
+            // Verify if the bucket already exists.
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
 
-            System.out.println("avant if");
             if (!found) {
 
-                System.out.println("dans if");
+                // Create a new bucket.
                 minioClient.makeBucket(
                         MakeBucketArgs
                                 .builder()
@@ -47,9 +52,7 @@ public class MinioService {
                                 .build()
                 );
 
-                System.out.println("après makeBucket");
-
-                // Définissez la politique du bucket pour rendre tous les objets lus uniquement par défaut.
+                // Define the bucket policy.
                 String config = "{\n" +
                         "    \"Statement\": [\n" +
                         "        {\n" +
@@ -71,8 +74,7 @@ public class MinioService {
                         "    \"Version\": \"2012-10-17\"\n" +
                         "}";
 
-                System.out.println("après config");
-
+                // Setting the bucket policy.
                 minioClient.setBucketPolicy(
                         SetBucketPolicyArgs
                                 .builder()
@@ -83,14 +85,10 @@ public class MinioService {
                 );
             }
 
-            System.out.println("après if");
-
-            // Récupérez le flux d'entrée du fichier MultipartFile.
+            // Get the input stream.
             InputStream fileInputStream = multipartFile.getInputStream();
 
-            System.out.println("après fileInputStream");
-
-            // Téléchargez l'objet vers Minio en utilisant putObject.
+            // Upload the file to the bucket with putObject.
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
@@ -99,17 +97,20 @@ public class MinioService {
                             .stream(fileInputStream, fileInputStream.available(), -1)
                             .build());
 
-            System.out.println("après putObject");
-
-            System.out.println("Fichier téléchargé avec succès dans Minio.");
+            // Close the file stream.
+            fileInputStream.close();
+        } catch (InvalidKeyException e) {
+            throw new InvalidKeyException("The key is invalid.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NoSuchAlgorithmException("The SHA-256 algorithm is not available.");
+        } catch (IOException e) {
+            throw new IOException("An I/O error occurs.");
         } catch (MinioException e) {
-            System.out.println("Une erreur s'est produite : " + e);
-            System.out.println("Trace HTTP : " + e.httpTrace());
-        } catch (Exception e) {
-            System.out.println("Une erreur s'est produite : " + e);
+            throw new MinioException("An error occurred: " + e.getMessage());
         }
     }
 
+    // TODO: try to make this work.
     public String getPublicImageUrl(String bucket, String object) {
         try {
 
