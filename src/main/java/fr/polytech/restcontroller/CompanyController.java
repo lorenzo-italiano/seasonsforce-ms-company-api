@@ -124,6 +124,7 @@ public class CompanyController {
 
             companyService.updateCompany(company);
 
+            return ResponseEntity.ok().build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -131,6 +132,5 @@ public class CompanyController {
         } catch (InvalidKeyException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 }
