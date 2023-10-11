@@ -1,10 +1,9 @@
 package fr.polytech.service;
 
 import io.minio.*;
-import io.minio.http.Method;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Service;
 import io.minio.errors.MinioException;
+import io.minio.http.Method;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
