@@ -1,5 +1,7 @@
 package fr.polytech.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -8,6 +10,8 @@ import java.security.NoSuchAlgorithmException;
 
 @Service
 public class HashService {
+
+    private final Logger logger = LoggerFactory.getLogger(HashService.class);
 
     /**
      * Hashes a string using the SHA-256 algorithm.
@@ -18,6 +22,8 @@ public class HashService {
     public String hash(String stringToHash) throws NoSuchAlgorithmException {
 
         try {
+            logger.info("Starting the hashing of a string");
+
             // Create a SHA-512 MessageDigest instance
             MessageDigest md = MessageDigest.getInstance("SHA-256");
 
@@ -39,9 +45,12 @@ public class HashService {
             // Truncate the hash to 62 characters (the maximum length of a bucket name)
             String truncatedHash = hexString.substring(0, 62);
 
+            logger.info("The hashing of a string has been completed");
+
             return truncatedHash;
 
         } catch (NoSuchAlgorithmException e) {
+            logger.error("The hashing of a string has failed: the SHA-256 algorithm is not available");
             throw new NoSuchAlgorithmException("The SHA-256 algorithm is not available.");
         }
     }
