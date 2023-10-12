@@ -3,6 +3,8 @@ package fr.polytech.service;
 import io.minio.*;
 import io.minio.errors.MinioException;
 import io.minio.http.Method;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MinioService {
 
+    private Logger logger = LoggerFactory.getLogger(MinioService.class);
+
     /**
      * Upload a file to Minio.
      *
@@ -31,6 +35,8 @@ public class MinioService {
     public void uploadFile(String bucketName, String objectName, MultipartFile multipartFile)
             throws IOException, NoSuchAlgorithmException, InvalidKeyException, MinioException {
         try {
+            logger.info("Starting the upload of a file to Minio");
+
             // Create a minioClient with the MinIO server, its access key and secret key.
             MinioClient minioClient = MinioClient.builder()
                     .endpoint("http://company-minio:9000")
@@ -99,13 +105,19 @@ public class MinioService {
 
             // Close the file stream.
             fileInputStream.close();
+
+            logger.info("Completed the upload of a file to Minio");
         } catch (InvalidKeyException e) {
+            logger.error("Error while uploading a file: the key is invalid.");
             throw new InvalidKeyException("The key is invalid.");
         } catch (NoSuchAlgorithmException e) {
+            logger.error("Error while uploading a file: the SHA-256 algorithm is not available.");
             throw new NoSuchAlgorithmException("The SHA-256 algorithm is not available.");
         } catch (IOException e) {
+            logger.error("Error while uploading a file: an I/O error occurs.");
             throw new IOException("An I/O error occurs.");
         } catch (MinioException e) {
+            logger.error("Error while uploading a file: " + e.getMessage());
             throw new MinioException("An error occurred: " + e.getMessage());
         }
     }
