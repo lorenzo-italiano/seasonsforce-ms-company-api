@@ -136,8 +136,6 @@ public class CompanyController {
 
             String hashedBucketName = hashService.hash("logo-" + id.toString());
 
-            System.out.println(hashedBucketName);
-
             minioService.uploadFile(hashedBucketName, "logo", file);
 
             // TODO: Change base url to a variable.
@@ -168,8 +166,6 @@ public class CompanyController {
             CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
 
             String hashedBucketName = hashService.hash("document-" + id.toString());
-
-            System.out.println(hashedBucketName);
 
             minioService.uploadFile(hashedBucketName, file.getOriginalFilename(), file);
 
