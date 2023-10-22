@@ -205,6 +205,37 @@ public class CompanyService {
     }
 
     /**
+     * Update a company.
+     *
+     * @param company The company to update.
+     * @return The updated company.
+     * @throws NotFoundException If the company was not found.
+     * @throws HttpClientErrorException If the address microservice returns an error.
+     */
+    public Company updateCompany(Company company) {
+        logger.info("Starting the update of a company");
+
+        Company storedCompany = companyRepository.findById(company.getId()).orElse(null);
+
+        if (storedCompany == null) {
+            logger.error("Error while updating a company: company not found");
+            // If the company is not found, throw an exception
+            throw new NotFoundException("Company not found");
+        }
+
+        storedCompany.setDescription(company.getDescription());
+        storedCompany.setEmployeesNumberRange(company.getEmployeesNumberRange());
+        storedCompany.setLogoUrl(company.getLogoUrl());
+        storedCompany.setName(company.getName());
+        storedCompany.setAddressId(company.getAddressId());
+        storedCompany.setSiretNumber(company.getSiretNumber());
+        storedCompany.setDocumentsUrl(company.getDocumentsUrl());
+
+        logger.info("Completed update of a company");
+        return companyRepository.save(storedCompany);
+    }
+
+    /**
      * Delete a company by its id.
      */
     public void deleteCompany(UUID id) throws NotFoundException {

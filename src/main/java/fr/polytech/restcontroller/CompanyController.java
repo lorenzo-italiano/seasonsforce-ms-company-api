@@ -7,6 +7,8 @@ import fr.polytech.service.HashService;
 import fr.polytech.service.MinioService;
 import io.minio.errors.MinioException;
 import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/company")
 public class CompanyController {
+
+    private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
 
     @Autowired
     private CompanyService companyService;
@@ -132,16 +136,25 @@ public class CompanyController {
     @PostMapping("/logo/{id}")
     public ResponseEntity<Boolean> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
+            logger.info("Changing logo of company with id " + id);
             CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
 
-            String hashedBucketName = hashService.hash("logo-" + id.toString());
+            String bucketName = "logo-" + id.toString();
 
-            minioService.uploadFile(hashedBucketName, "logo", file);
+            logger.info("Uploading logo to bucket " + bucketName);
+
+            minioService.uploadFile(bucketName, "logo", file, true);
+
+            logger.info("Setting logo url to " + "http://localhost:9000/" + bucketName + "/logo");
 
             // TODO: Change base url to a variable.
-            company.setLogoUrl("http://localhost:9000/" + hashedBucketName + "/logo");
+            company.setLogoUrl("http://localhost:9000/" + bucketName + "/logo");
+
+            logger.info("Updating company");
 
             companyService.updateCompany(company);
+
+            logger.info("Logo changed successfully");
 
             return ResponseEntity.ok(true);
         } catch (HttpClientErrorException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
@@ -161,17 +174,18 @@ public class CompanyController {
      * @return True if the document was added, false otherwise.
      */
     @PostMapping("/document/{id}")
-    public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("document") MultipartFile file) {
         try {
+            logger.info("Adding document to company with id " + id);
             CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
 
-            String hashedBucketName = hashService.hash("document-" + id.toString());
+            String bucketName = "documents-" + id.toString();
 
-            minioService.uploadFile(hashedBucketName, file.getOriginalFilename(), file);
+            minioService.uploadFile(bucketName, file.getOriginalFilename(), file, false);
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.add("http://localhost:9000/" + hashedBucketName + "/" + file.getOriginalFilename());
+            documentsUrl.add("http://localhost:9000/" + bucketName + "/" + file.getOriginalFilename());
 
             companyService.updateCompany(company);
 
@@ -184,4 +198,49 @@ public class CompanyController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    /**
+     * Get the private URL of a document.
+     *
+     * @param id: The id of the company.
+     * @param objectName: The name of the object.
+     * @return The private URL of the document.
+     */
+    @GetMapping("/documents/{id}/{objectName}")
+    public ResponseEntity<String> getDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
+        // TODO verify that document belongs to company
+        // TODO verify that document exists
+        // TODO verify that user is allowed to access document
+        try {
+            return ResponseEntity.ok(minioService.getPrivateDocumentUrl("documents-" + id.toString(), objectName));
+        } catch (MinioException | IOException e) {
+            return ResponseEntity.internalServerError().build();
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/documents/{id}/{objectName}")
+    public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
+        // TODO verify that document belongs to company
+        // TODO verify that document exists
+        // TODO verify that user is allowed to access document
+        try {
+            minioService.deleteFileFromPrivateBucket("documents-" + id.toString(), objectName);
+
+            Company company = companyService.getCompanyById(id);
+
+            List<String> documentsUrl = company.getDocumentsUrl();
+
+            documentsUrl.remove("http://localhost:9000/" + "documents-" + id.toString() + "/" + objectName);
+
+            companyService.updateCompany(company);
+            return ResponseEntity.ok(true);
+        } catch (MinioException | IOException e) {
+            return ResponseEntity.internalServerError().build();
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 }
