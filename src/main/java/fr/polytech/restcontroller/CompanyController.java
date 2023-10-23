@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping("/api/v1/company")
 public class CompanyController {
 
@@ -206,7 +207,7 @@ public class CompanyController {
      * @param objectName: The name of the object.
      * @return The private URL of the document.
      */
-    @GetMapping("/documents/{id}/{objectName}")
+    @GetMapping("/document/{id}/{objectName}")
     public ResponseEntity<String> getDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
         // TODO verify that document belongs to company
         // TODO verify that document exists
@@ -220,7 +221,7 @@ public class CompanyController {
         }
     }
 
-    @DeleteMapping("/documents/{id}/{objectName}")
+    @DeleteMapping("/document/{id}/{objectName}")
     public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
         // TODO verify that document belongs to company
         // TODO verify that document exists
