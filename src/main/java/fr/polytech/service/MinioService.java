@@ -215,6 +215,7 @@ public class MinioService {
      */
     public String getPrivateDocumentUrl(String bucket, String object) throws MinioException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 
+        logger.info("Getting the private URL of an object in Minio with bucketName: " + bucket + " and object: " + object);
         // Générez l'URL de l'objet dans Minio.
         String url = null;
 //        Map<String, String> reqParams = new HashMap<String, String>();
@@ -229,6 +230,8 @@ public class MinioService {
 //                            .extraHeaders()
                             .expiry(2, TimeUnit.HOURS)
                             .build());
+
+        logger.info("Completed getting the private URL of an object in Minio");
 
         return url;
     }
