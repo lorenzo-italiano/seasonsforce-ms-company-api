@@ -134,7 +134,7 @@ public class CompanyController {
      * @param file New logo.
      * @return True if the logo was changed, false otherwise.
      */
-    @PostMapping("/logo/{id}")
+    @PatchMapping("/logo/{id}")
     public ResponseEntity<Boolean> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Changing logo of company with id " + id);
@@ -174,7 +174,7 @@ public class CompanyController {
      * @param file Document to add.
      * @return True if the document was added, false otherwise.
      */
-    @PostMapping("/document/{id}")
+    @PatchMapping("/document/{id}")
     public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("document") MultipartFile file) {
         try {
             logger.info("Adding document to company with id " + id);
