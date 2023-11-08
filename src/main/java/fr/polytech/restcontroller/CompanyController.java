@@ -2,6 +2,7 @@ package fr.polytech.restcontroller;
 
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
+import fr.polytech.model.CompanyMinimizedDTO;
 import fr.polytech.service.CompanyService;
 import fr.polytech.service.HashService;
 import fr.polytech.service.MinioService;
@@ -76,6 +77,16 @@ public class CompanyController {
         } catch (HttpClientErrorException e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    /**
+     * Get all companies with only their id and name.
+     *
+     * @return List of all companies with only their id and name.
+     */
+    @GetMapping("/minimized")
+    public ResponseEntity<List<CompanyMinimizedDTO>> getAllCompaniesMinimized() {
+        return ResponseEntity.ok(companyService.getAllCompaniesMinimized());
     }
 
     /**

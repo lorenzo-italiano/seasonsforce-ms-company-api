@@ -3,6 +3,7 @@ package fr.polytech.service;
 import fr.polytech.model.AddressDTO;
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
+import fr.polytech.model.CompanyMinimizedDTO;
 import fr.polytech.repository.CompanyRepository;
 import jakarta.ws.rs.NotFoundException;
 import org.slf4j.Logger;
@@ -106,6 +107,11 @@ public class CompanyService {
 
         logger.info("Returning company with id " + id);
         return company;
+    }
+
+    public List<CompanyMinimizedDTO> getAllCompaniesMinimized() {
+        logger.info("Getting all companies");
+        return companyRepository.getAllCompaniesMinimized();
     }
 
     /**
