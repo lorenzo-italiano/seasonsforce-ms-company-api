@@ -69,9 +69,9 @@ public class CompanyController {
      * @return Company with the specified id and all its details.
      */
     @GetMapping("/{id}/detailed")
-    public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@PathVariable("id") UUID id) {
+    public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
         try {
-            return ResponseEntity.ok(companyService.getDetailedCompanyById(id));
+            return ResponseEntity.ok(companyService.getDetailedCompanyById(id, token));
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (HttpClientErrorException e) {
@@ -89,6 +89,15 @@ public class CompanyController {
         return ResponseEntity.ok(companyService.getAllCompaniesMinimized());
     }
 
+    @GetMapping("/address-list/{id}")
+    public ResponseEntity<List<UUID>> getCompanyAddressList(@PathVariable("id") UUID id) {
+        try {
+            return ResponseEntity.ok(companyService.getCompanyAddressList(id));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     /**
      * Create a new company.
      *
@@ -96,7 +105,7 @@ public class CompanyController {
      * @return Created company.
      */
     @PostMapping("/")
-    public ResponseEntity<Company> createCompany(@RequestBody CompanyDetailsDTO company) {
+    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
         try {
             return ResponseEntity.ok(companyService.createCompany(company));
         } catch (HttpClientErrorException e) {
@@ -111,7 +120,7 @@ public class CompanyController {
      * @return Updated company.
      */
     @PutMapping("/")
-    public ResponseEntity<Company> updateCompany(@RequestBody CompanyDetailsDTO company) {
+    public ResponseEntity<Company> updateCompany(@RequestBody Company company) {
         try {
             return ResponseEntity.ok(companyService.updateCompany(company));
         } catch (NotFoundException e) {
@@ -148,7 +157,7 @@ public class CompanyController {
     public ResponseEntity<Boolean> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Changing logo of company with id " + id);
-            CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
+            Company company = companyService.getCompanyById(id);
 
             String bucketName = "logo-" + id.toString();
 
@@ -188,7 +197,7 @@ public class CompanyController {
     public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("document") MultipartFile file) {
         try {
             logger.info("Adding document to company with id " + id);
-            CompanyDetailsDTO company = companyService.getDetailedCompanyById(id);
+            Company company = companyService.getCompanyById(id);
 
             String bucketName = "documents-" + id.toString();
 
@@ -196,7 +205,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.add("http://localhost:9000/" + bucketName + "/" + file.getOriginalFilename());
+            documentsUrl.add("http://localhost:8090/" + bucketName + "/" + file.getOriginalFilename());
 
             companyService.updateCompany(company);
 
@@ -243,7 +252,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.remove("http://localhost:9000/" + "documents-" + id.toString() + "/" + objectName);
+            documentsUrl.remove("http://localhost:8090/" + "documents-" + id.toString() + "/" + objectName);
 
             companyService.updateCompany(company);
             return ResponseEntity.ok(true);

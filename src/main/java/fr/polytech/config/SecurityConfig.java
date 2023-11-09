@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/v1/company/minimized").permitAll()
+                        .requestMatchers("/api/v1/company/address-list/**").permitAll()
                         .anyRequest().authenticated());
 
         http

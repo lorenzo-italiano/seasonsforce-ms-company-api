@@ -21,7 +21,10 @@ public class Company {
 
     private String employeesNumberRange;
 
-    private UUID addressId;
+    @ElementCollection(targetClass = UUID.class, fetch = FetchType.LAZY)
+    @CollectionTable(name = "addresses", joinColumns = @JoinColumn(name = "id"))
+    @Column(name = "address", nullable = false)
+    private List<UUID> addressIdList;
 
     private String siretNumber;
 
@@ -70,12 +73,12 @@ public class Company {
         this.employeesNumberRange = employeesNumberRange;
     }
 
-    public UUID getAddressId() {
-        return addressId;
+    public List<UUID> getAddressIdList() {
+        return addressIdList;
     }
 
-    public void setAddressId(UUID addressId) {
-        this.addressId = addressId;
+    public void setAddressIdList(List<UUID> addressIdList) {
+        this.addressIdList = addressIdList;
     }
 
     public String getSiretNumber() {
