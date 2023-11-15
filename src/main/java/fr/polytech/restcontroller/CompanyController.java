@@ -1,5 +1,6 @@
 package fr.polytech.restcontroller;
 
+import fr.polytech.model.AddressDTO;
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.model.CompanyMinimizedDTO;
@@ -90,9 +91,11 @@ public class CompanyController {
     }
 
     @GetMapping("/address-list/{id}")
-    public ResponseEntity<List<UUID>> getCompanyAddressList(@PathVariable("id") UUID id) {
+    public ResponseEntity<List<AddressDTO>> getCompanyAddressList(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
         try {
-            return ResponseEntity.ok(companyService.getCompanyAddressList(id));
+            String pureToken = token.split(" ")[1];
+
+            return ResponseEntity.ok(companyService.getCompanyAddressList(id, pureToken));
         } catch (NotFoundException e) {
             return ResponseEntity.notFound().build();
         }

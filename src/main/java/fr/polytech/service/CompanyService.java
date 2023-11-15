@@ -266,8 +266,44 @@ public class CompanyService {
         companyRepository.deleteById(id);
     }
 
-    public List<UUID> getCompanyAddressList(UUID id) {
+    public List<AddressDTO> getCompanyAddressList(UUID id, String token) {
         Company company = getCompanyById(id);
-        return company.getAddressIdList();
+
+        List<UUID> addressList = company.getAddressIdList();
+
+        // TODO fetch every address.
+
+        List<AddressDTO> addressDTOList = new ArrayList<>();
+
+        for (UUID addressId: addressList) {
+            // Fetching address infos from address microservice
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(token);
+            HttpEntity<UUID> requestEntity = new HttpEntity<>(null, headers);
+
+            logger.info("trying to fetch address with id " + addressId);
+
+            // Sending the request to address microservice
+            ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
+                    "lb://address-api/api/v1/address/" + addressId,
+                    HttpMethod.GET,
+                    requestEntity,
+                    AddressDTO.class
+            );
+
+            if(responseEntity.getStatusCode() != HttpStatus.OK){
+                logger.info(responseEntity.getStatusCode().toString());
+                logger.error("Error while fetching address infos while getting a company");
+                // If the status code is not 200, then throw the exception to the client
+                throw new HttpClientErrorException(responseEntity.getStatusCode());
+            }
+
+            AddressDTO addressDTO = responseEntity.getBody();
+
+            addressDTOList.add(addressDTO);
+        }
+
+        return addressDTOList;
     }
 }
