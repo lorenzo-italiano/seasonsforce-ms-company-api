@@ -1,5 +1,8 @@
 package fr.polytech.restcontroller;
 
+import fr.polytech.annotation.IsAdmin;
+import fr.polytech.annotation.IsRecruiterInCompanyOrAdminAndDocumentExistsAndBelongsToCompany;
+import fr.polytech.annotation.IsRecruiterOrAdmin;
 import fr.polytech.model.AddressDTO;
 import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
@@ -8,10 +11,13 @@ import fr.polytech.service.CompanyService;
 import fr.polytech.service.HashService;
 import fr.polytech.service.MinioService;
 import io.minio.errors.MinioException;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.Produces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
@@ -29,6 +35,9 @@ public class CompanyController {
 
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
 
+    // TODO: Variable for URL in system.getenv
+    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
+
     @Autowired
     private CompanyService companyService;
 
@@ -44,6 +53,7 @@ public class CompanyController {
      * @return List of all companies.
      */
     @GetMapping("/")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Company>> getAllCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
     }
@@ -55,6 +65,7 @@ public class CompanyController {
      * @return Company with the specified id.
      */
     @GetMapping("/{id}")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Company> getCompanyById(@PathVariable("id") UUID id) {
         try {
             return ResponseEntity.ok(companyService.getCompanyById(id));
@@ -70,6 +81,8 @@ public class CompanyController {
      * @return Company with the specified id and all its details.
      */
     @GetMapping("/{id}/detailed")
+    @IsRecruiterOrAdmin
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CompanyDetailsDTO> getDetailedCompanyById(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
         try {
             return ResponseEntity.ok(companyService.getDetailedCompanyById(id, token));
@@ -86,11 +99,13 @@ public class CompanyController {
      * @return List of all companies with only their id and name.
      */
     @GetMapping("/minimized")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CompanyMinimizedDTO>> getAllCompaniesMinimized() {
         return ResponseEntity.ok(companyService.getAllCompaniesMinimized());
     }
 
     @GetMapping("/address-list/{id}")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<AddressDTO>> getCompanyAddressList(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
         try {
             String pureToken = token.split(" ")[1];
@@ -108,6 +123,9 @@ public class CompanyController {
      * @return Created company.
      */
     @PostMapping("/")
+    @IsRecruiterOrAdmin
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Company> createCompany(@RequestBody Company company) {
         try {
             return ResponseEntity.ok(companyService.createCompany(company));
@@ -123,6 +141,9 @@ public class CompanyController {
      * @return Updated company.
      */
     @PutMapping("/")
+    @IsRecruiterOrAdmin
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Company> updateCompany(@RequestBody Company company) {
         try {
             return ResponseEntity.ok(companyService.updateCompany(company));
@@ -140,6 +161,8 @@ public class CompanyController {
      * @return True if the company was deleted, false otherwise.
      */
     @DeleteMapping("/{id}")
+    @IsAdmin
+    @Produces(MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<Boolean> deleteCompany(@PathVariable("id") UUID id) {
         try {
             companyService.deleteCompany(id);
@@ -157,6 +180,9 @@ public class CompanyController {
      * @return True if the logo was changed, false otherwise.
      */
     @PatchMapping("/logo/{id}")
+    @IsRecruiterOrAdmin
+    @Produces(MediaType.TEXT_PLAIN_VALUE)
+    @Consumes(MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Boolean> changeCompanyLogo(@PathVariable("id") UUID id, @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Changing logo of company with id " + id);
@@ -168,10 +194,9 @@ public class CompanyController {
 
             minioService.uploadFile(bucketName, "logo", file, true);
 
-            logger.info("Setting logo url to " + "http://localhost:9000/" + bucketName + "/logo");
+            logger.info("Setting logo url to " + "http://localhost:9000/" + bucketName + "/logo"); // TODO: URL in system.getenv
 
-            // TODO: Change base url to a variable.
-            company.setLogoUrl("http://localhost:9000/" + bucketName + "/logo");
+            company.setLogoUrl("http://localhost:9000/" + bucketName + "/logo"); // TODO: URL in system.getenv
 
             logger.info("Updating company");
 
@@ -197,6 +222,9 @@ public class CompanyController {
      * @return True if the document was added, false otherwise.
      */
     @PatchMapping("/document/{id}")
+    @IsRecruiterOrAdmin
+    @Produces(MediaType.TEXT_PLAIN_VALUE)
+    @Consumes(MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Boolean> addCompanyDocument(@PathVariable("id") UUID id, @RequestParam("document") MultipartFile file) {
         try {
             logger.info("Adding document to company with id " + id);
@@ -208,7 +236,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.add("http://localhost:8090/" + bucketName + "/" + file.getOriginalFilename());
+            documentsUrl.add("http://localhost:8090/" + bucketName + "/" + file.getOriginalFilename()); // TODO: URL in system.getenv
 
             companyService.updateCompany(company);
 
@@ -230,10 +258,9 @@ public class CompanyController {
      * @return The private URL of the document.
      */
     @GetMapping("/document/{id}/{objectName}")
+    @IsRecruiterInCompanyOrAdminAndDocumentExistsAndBelongsToCompany
+    @Produces(MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
-        // TODO verify that document belongs to company
-        // TODO verify that document exists
-        // TODO verify that user is allowed to access document
         try {
             return ResponseEntity.ok(minioService.getPrivateDocumentUrl("documents-" + id.toString(), objectName));
         } catch (MinioException | IOException e) {
@@ -243,11 +270,16 @@ public class CompanyController {
         }
     }
 
+    /**
+     * Delete a document.
+     * @param id The id of the company.
+     * @param objectName The name of the object.
+     * @return True if the document was deleted, false otherwise.
+     */
     @DeleteMapping("/document/{id}/{objectName}")
-    public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
-        // TODO verify that document belongs to company
-        // TODO verify that document exists
-        // TODO verify that user is allowed to access document
+    @IsRecruiterInCompanyOrAdminAndDocumentExistsAndBelongsToCompany
+    @Produces(MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName, @RequestHeader("Authorization") String token){
         try {
             minioService.deleteFileFromPrivateBucket("documents-" + id.toString(), objectName);
 
@@ -255,7 +287,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.remove("http://localhost:8090/" + "documents-" + id.toString() + "/" + objectName);
+            documentsUrl.remove("http://localhost:8090/" + "documents-" + id.toString() + "/" + objectName); // TODO: URL in system.getenv
 
             companyService.updateCompany(company);
             return ResponseEntity.ok(true);

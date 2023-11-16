@@ -6,12 +6,14 @@ import io.minio.http.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 
@@ -23,10 +25,13 @@ public class MinioService {
 
     private final Logger logger = LoggerFactory.getLogger(MinioService.class);
 
+    // TODO: Variable for URL in system.getenv
+    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
+
     // Initialize minioClient with MinIO server.
     private final MinioClient minioClient = MinioClient.builder()
-                                                .endpoint("http://company-minio:9000")
-                                                .credentials("company", "companycompany")
+                                                .endpoint("http://company-minio:9000") // TODO: Variable for URL in system.getenv
+                                                .credentials("company", "companycompany") // TODO: Variable for URL in system.getenv
                                                 .region("europe")
                                                 .build();
 
@@ -123,7 +128,7 @@ public class MinioService {
                 MakeBucketArgs
                         .builder()
                         .bucket(bucketName)
-                        .region("europe")
+                        .region("europe") // TODO: Variable for URL in system.getenv
                         .build()
         );
 
@@ -133,7 +138,7 @@ public class MinioService {
                         .builder()
                         .bucket(bucketName)
                         .config(config)
-                        .region("europe")
+                        .region("europe") // TODO: Variable for URL in system.getenv
                         .build()
         );
     }
@@ -224,7 +229,7 @@ public class MinioService {
             url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
-                            .region("europe")
+                            .region("europe") // TODO: Variable for URL in system.getenv
                             .bucket(bucket)
                             .object(object)
 //                            .extraHeaders()
@@ -253,5 +258,25 @@ public class MinioService {
                 .bucket(bucketName)
                 .object(objectName)
                 .build());
+    }
+
+    /**
+     * Check if a document exists and belongs to a company.
+     * @param companyId Company id.
+     * @param objectName Object name.
+     * @return True if the document exists and belongs to the company, false otherwise.
+     * @throws HttpClientErrorException If the document microservice returns an error.
+     */
+    public boolean documentExistsAndBelongsToCompany(UUID companyId, String objectName) throws HttpClientErrorException {
+        try {
+            minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(companyId.toString())
+                            .object(objectName)
+                            .build());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -1,9 +1,9 @@
 package fr.polytech.service;
 
-import fr.polytech.model.AddressDTO;
-import fr.polytech.model.Company;
-import fr.polytech.model.CompanyDetailsDTO;
-import fr.polytech.model.CompanyMinimizedDTO;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import fr.polytech.model.*;
 import fr.polytech.repository.CompanyRepository;
 import jakarta.ws.rs.NotFoundException;
 import org.slf4j.Logger;
@@ -23,6 +23,9 @@ public class CompanyService {
 
     // Initializing logger
     private final Logger logger = LoggerFactory.getLogger(CompanyService.class);
+
+    // TODO: Variable for URL in system.getenv
+    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
 
     @Autowired
     private RestTemplate restTemplate;
@@ -44,7 +47,7 @@ public class CompanyService {
         return companyRepository.save(company);
     }
 
-    // TODO reuse this code
+// TODO : Remove it or use it
 //    // Create new address DTO
 //    AddressDTO addressDTO = new AddressDTO(company.getAddressStreet(), company.getAddressNumber(), company.getAddressCity(), company.getAddressZipCode(), company.getAddressCountry());
 //
@@ -133,7 +136,7 @@ public class CompanyService {
 
                     // Sending the request to address microservice
                     ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                            "lb://address-api/api/v1/address/" + addressId,
+                            "lb://address-api/api/v1/address/" + addressId, // TODO: URL in system.getenv
                             HttpMethod.GET,
                             requestEntity,
                             AddressDTO.class
@@ -161,6 +164,7 @@ public class CompanyService {
         throw new NotFoundException("Company not found");
     }
 
+    // TODO: Remove it or use it
 //    /**
 //     * Update a company.
 //     *
@@ -286,7 +290,7 @@ public class CompanyService {
 
             // Sending the request to address microservice
             ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                    "lb://address-api/api/v1/address/" + addressId,
+                    "lb://address-api/api/v1/address/" + addressId, // TODO: URL in system.getenv
                     HttpMethod.GET,
                     requestEntity,
                     AddressDTO.class
@@ -305,5 +309,45 @@ public class CompanyService {
         }
 
         return addressDTOList;
+    }
+
+    /**
+     * Check if a user is a member of the company.
+     *
+     * @param companyId: the id of the company.
+     * @param bearerToken: the token of the user.
+     * @return true if the user is a member of the company, false otherwise.
+     * @throws HttpClientErrorException if the user microservice returns an error.
+     */
+    public boolean isUserMemberOfCompany(UUID companyId, String bearerToken) throws HttpClientErrorException {
+        logger.info("Checking if user is a member of the company");
+
+        String token = bearerToken.split(" ")[1];
+        DecodedJWT jwt = JWT.decode(token);
+        Claim subClaim = jwt.getClaim("sub");
+        UUID userId = UUID.fromString(subClaim.asString());
+
+        // Fetching user infos from user microservice
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<RecruiterDTO> requestEntity = new HttpEntity<>(null, headers);
+
+        logger.info("Fetching user with id " + userId);
+
+        // Sending the request to user microservice
+        ResponseEntity<RecruiterDTO> responseEntity = restTemplate.exchange(
+                "lb://user-api/api/v1/user/" + userId, // TODO: URL in system.getenv
+                HttpMethod.GET,
+                requestEntity,
+                RecruiterDTO.class
+        );
+        RecruiterDTO recruiterDTO = responseEntity.getBody();
+        if (recruiterDTO == null) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "User not found");
+        } else if (recruiterDTO.getRole() == null || !recruiterDTO.getRole().equals("recruiter") || recruiterDTO.getCompanyId() == null) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "User is not a recruiter");
+        }
+
+        return recruiterDTO.getCompanyId().equals(companyId);
     }
 }

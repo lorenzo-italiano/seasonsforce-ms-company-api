@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 
 @Service
 public class HashService {
-
+// TODO: Remove it or use it
     private final Logger logger = LoggerFactory.getLogger(HashService.class);
 
     /**
