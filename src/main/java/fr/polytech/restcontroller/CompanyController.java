@@ -8,7 +8,6 @@ import fr.polytech.model.Company;
 import fr.polytech.model.CompanyDetailsDTO;
 import fr.polytech.model.CompanyMinimizedDTO;
 import fr.polytech.service.CompanyService;
-import fr.polytech.service.HashService;
 import fr.polytech.service.MinioService;
 import io.minio.errors.MinioException;
 import jakarta.ws.rs.Consumes;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -35,17 +35,14 @@ public class CompanyController {
 
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
 
-    // TODO: Variable for URL in system.getenv
-    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
-
     @Autowired
     private CompanyService companyService;
 
     @Autowired
     private MinioService minioService;
 
-    @Autowired
-    private HashService hashService;
+    private final String MINIO_BASE_URL = Optional.ofNullable(System.getenv("MINIO_BASE_URL")).orElse("http://localhost:9000");
+    private final String GATEWAY_BASE_URL = Optional.ofNullable(System.getenv("GATEWAY_BASE_URL")).orElse("http://localhost:8090");
 
     /**
      * Get all companies.
@@ -194,9 +191,9 @@ public class CompanyController {
 
             minioService.uploadFile(bucketName, "logo", file, true);
 
-            logger.info("Setting logo url to " + "http://localhost:9000/" + bucketName + "/logo"); // TODO: URL in system.getenv
+            logger.info("Setting logo url to " + MINIO_BASE_URL + "/" + bucketName + "/logo");
 
-            company.setLogoUrl("http://localhost:9000/" + bucketName + "/logo"); // TODO: URL in system.getenv
+            company.setLogoUrl(MINIO_BASE_URL + "/" + bucketName + "/logo");
 
             logger.info("Updating company");
 
@@ -236,7 +233,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.add("http://localhost:8090/" + bucketName + "/" + file.getOriginalFilename()); // TODO: URL in system.getenv
+            documentsUrl.add(GATEWAY_BASE_URL + "/" + bucketName + "/" + file.getOriginalFilename());
 
             companyService.updateCompany(company);
 
@@ -287,7 +284,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.remove("http://localhost:8090/" + "documents-" + id.toString() + "/" + objectName); // TODO: URL in system.getenv
+            documentsUrl.remove(GATEWAY_BASE_URL + "/" + "documents-" + id.toString() + "/" + objectName);
 
             companyService.updateCompany(company);
             return ResponseEntity.ok(true);

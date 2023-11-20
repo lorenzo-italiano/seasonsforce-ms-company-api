@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,9 +24,8 @@ public class CompanyService {
 
     // Initializing logger
     private final Logger logger = LoggerFactory.getLogger(CompanyService.class);
-
-    // TODO: Variable for URL in system.getenv
-    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
+    private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
+    private final String ADDRESS_API_URL = Optional.ofNullable(System.getenv("ADDRESS_API_URL")).orElse("lb://address-api/api/v1/address");
 
     @Autowired
     private RestTemplate restTemplate;
@@ -46,33 +46,6 @@ public class CompanyService {
         // Save the company in the database and return it
         return companyRepository.save(company);
     }
-
-// TODO : Remove it or use it
-//    // Create new address DTO
-//    AddressDTO addressDTO = new AddressDTO(company.getAddressStreet(), company.getAddressNumber(), company.getAddressCity(), company.getAddressZipCode(), company.getAddressCountry());
-//
-//    // Creating address in address microservice
-//    HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//    HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(addressDTO, headers);
-//
-//    // Sending the request to address microservice
-//    ResponseEntity<UUID> responseEntity = restTemplate.exchange(
-//            "lb://address-api/api/v1/address/",
-//            HttpMethod.POST,
-//            requestEntity,
-//            UUID.class
-//    );
-//
-//    // Get the response, if the status code is 201, then the address was created successfully
-//        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
-//        UUID createdAddressId = responseEntity.getBody();
-//        companyReturn.setAddressId(createdAddressId);
-//    } else {
-//        logger.error("Error while creating an address while creating a company");
-//        // If the status code is not 201, then throw the exception to the client
-//        throw new HttpClientErrorException(responseEntity.getStatusCode());
-//    }
 
     /**
      * Get all companies.
@@ -122,7 +95,6 @@ public class CompanyService {
         if (company != null) {
             List<AddressDTO> addressDTOList = new ArrayList<>();
 
-            // TODO if addressIdList is empty, then return empty addressList else return each address in the list.
             if (!company.getAddressIdList().isEmpty()){
                 for (UUID addressId: company.getAddressIdList()) {
 
@@ -136,7 +108,7 @@ public class CompanyService {
 
                     // Sending the request to address microservice
                     ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                            "lb://address-api/api/v1/address/" + addressId, // TODO: URL in system.getenv
+                            ADDRESS_API_URL + addressId,
                             HttpMethod.GET,
                             requestEntity,
                             AddressDTO.class
@@ -163,62 +135,6 @@ public class CompanyService {
         // If the company is not found, throw an exception
         throw new NotFoundException("Company not found");
     }
-
-    // TODO: Remove it or use it
-//    /**
-//     * Update a company.
-//     *
-//     * @param company The company to update.
-//     * @return The updated company.
-//     * @throws NotFoundException If the company was not found.
-//     * @throws HttpClientErrorException If the address microservice returns an error.
-//     */
-//    public Company updateCompany(CompanyDetailsDTO company) throws NotFoundException, HttpClientErrorException{
-//        logger.info("Starting the update of a company");
-//
-//        Company storedCompany = companyRepository.findById(company.getId()).orElse(null);
-//
-//        if (storedCompany == null) {
-//            logger.error("Error while updating a company: company not found");
-//            // If the company is not found, throw an exception
-//            throw new NotFoundException("Company not found");
-//        }
-//
-//        // TODO extract method
-//        storedCompany.setDescription(company.getDescription());
-//        storedCompany.setEmployeesNumberRange(company.getEmployeesNumberRange());
-//        storedCompany.setLogoUrl(company.getLogoUrl());
-//        storedCompany.setName(company.getName());
-//
-//        // Create new address DTO
-//        AddressDTO addressDTO = new AddressDTO(company.getAddressStreet(), company.getAddressNumber(), company.getAddressCity(), company.getAddressZipCode(), company.getAddressCountry());
-//
-//        // Creating address in address microservice
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        HttpEntity<AddressDTO> requestEntity = new HttpEntity<>(addressDTO, headers);
-//
-//        // Sending the request to address microservice
-//        ResponseEntity<UUID> responseEntity = restTemplate.exchange(
-//                "lb://address-api/api/v1/address/",
-//                HttpMethod.POST,
-//                requestEntity,
-//                UUID.class
-//        );
-//
-//        // Get the response, if the status code is 201, then the address was created successfully
-//        if (responseEntity.getStatusCode() == HttpStatus.CREATED) {
-//            UUID createdAddressId = responseEntity.getBody();
-//            storedCompany.setAddressId(createdAddressId);
-//        } else {
-//            logger.error("Error while creating an address while creating a company");
-//            // If the status code is not 201, then throw the exception to the client
-//            throw new HttpClientErrorException(responseEntity.getStatusCode());
-//        }
-//
-//        logger.info("Completed update of a company");
-//        return companyRepository.save(storedCompany);
-//    }
 
     /**
      * Update a company.
@@ -275,8 +191,6 @@ public class CompanyService {
 
         List<UUID> addressList = company.getAddressIdList();
 
-        // TODO fetch every address.
-
         List<AddressDTO> addressDTOList = new ArrayList<>();
 
         for (UUID addressId: addressList) {
@@ -290,7 +204,7 @@ public class CompanyService {
 
             // Sending the request to address microservice
             ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                    "lb://address-api/api/v1/address/" + addressId, // TODO: URL in system.getenv
+                    ADDRESS_API_URL + addressId,
                     HttpMethod.GET,
                     requestEntity,
                     AddressDTO.class
@@ -336,7 +250,7 @@ public class CompanyService {
 
         // Sending the request to user microservice
         ResponseEntity<RecruiterDTO> responseEntity = restTemplate.exchange(
-                "lb://user-api/api/v1/user/" + userId, // TODO: URL in system.getenv
+                USER_API_URL + userId,
                 HttpMethod.GET,
                 requestEntity,
                 RecruiterDTO.class

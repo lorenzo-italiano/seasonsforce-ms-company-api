@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -25,14 +26,13 @@ public class MinioService {
 
     private final Logger logger = LoggerFactory.getLogger(MinioService.class);
 
-    // TODO: Variable for URL in system.getenv
-    //  eg: private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
+    private final String MINIO_REGION = Optional.ofNullable(System.getenv("MINIO_REGION")).orElse("europe");
 
     // Initialize minioClient with MinIO server.
     private final MinioClient minioClient = MinioClient.builder()
-                                                .endpoint("http://company-minio:9000") // TODO: Variable for URL in system.getenv
-                                                .credentials("company", "companycompany") // TODO: Variable for URL in system.getenv
-                                                .region("europe")
+                                                .endpoint(System.getenv("MINIO_REAL_ENDPOINT"))
+                                                .credentials(System.getenv("MINIO_USERNAME"), System.getenv("MINIO_PASSWORD"))
+                                                .region(MINIO_REGION)
                                                 .build();
 
     /**
@@ -128,7 +128,7 @@ public class MinioService {
                 MakeBucketArgs
                         .builder()
                         .bucket(bucketName)
-                        .region("europe") // TODO: Variable for URL in system.getenv
+                        .region(MINIO_REGION)
                         .build()
         );
 
@@ -138,7 +138,7 @@ public class MinioService {
                         .builder()
                         .bucket(bucketName)
                         .config(config)
-                        .region("europe") // TODO: Variable for URL in system.getenv
+                        .region(MINIO_REGION)
                         .build()
         );
     }
@@ -229,7 +229,7 @@ public class MinioService {
             url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
-                            .region("europe") // TODO: Variable for URL in system.getenv
+                            .region(MINIO_REGION)
                             .bucket(bucket)
                             .object(object)
 //                            .extraHeaders()
