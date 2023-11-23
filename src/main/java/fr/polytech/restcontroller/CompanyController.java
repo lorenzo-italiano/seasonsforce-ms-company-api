@@ -41,8 +41,8 @@ public class CompanyController {
     @Autowired
     private MinioService minioService;
 
-    private final String MINIO_BASE_URL = Optional.ofNullable(System.getenv("MINIO_BASE_URL")).orElse("http://localhost:9000");
-    private final String GATEWAY_BASE_URL = Optional.ofNullable(System.getenv("GATEWAY_BASE_URL")).orElse("http://localhost:8090");
+    private final String MINIO_BASE_URI = Optional.ofNullable(System.getenv("MINIO_BASE_URI")).orElse("http://localhost:9000");
+    private final String GATEWAY_BASE_URI = Optional.ofNullable(System.getenv("GATEWAY_BASE_URI")).orElse("http://localhost:8090");
 
     /**
      * Get all companies.
@@ -191,9 +191,9 @@ public class CompanyController {
 
             minioService.uploadFile(bucketName, "logo", file, true);
 
-            logger.info("Setting logo url to " + MINIO_BASE_URL + "/" + bucketName + "/logo");
+            logger.info("Setting logo url to " + MINIO_BASE_URI + "/" + bucketName + "/logo");
 
-            company.setLogoUrl(MINIO_BASE_URL + "/" + bucketName + "/logo");
+            company.setLogoUrl(MINIO_BASE_URI + "/" + bucketName + "/logo");
 
             logger.info("Updating company");
 
@@ -233,7 +233,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.add(GATEWAY_BASE_URL + "/" + bucketName + "/" + file.getOriginalFilename());
+            documentsUrl.add(GATEWAY_BASE_URI + "/" + bucketName + "/" + file.getOriginalFilename());
 
             companyService.updateCompany(company);
 
@@ -284,7 +284,7 @@ public class CompanyController {
 
             List<String> documentsUrl = company.getDocumentsUrl();
 
-            documentsUrl.remove(GATEWAY_BASE_URL + "/" + "documents-" + id.toString() + "/" + objectName);
+            documentsUrl.remove(GATEWAY_BASE_URI + "/" + "documents-" + id.toString() + "/" + objectName);
 
             companyService.updateCompany(company);
             return ResponseEntity.ok(true);

@@ -24,8 +24,8 @@ public class CompanyService {
 
     // Initializing logger
     private final Logger logger = LoggerFactory.getLogger(CompanyService.class);
-    private final String USER_API_URL = Optional.ofNullable(System.getenv("USER_API_URL")).orElse("lb://user-api/api/v1/user");
-    private final String ADDRESS_API_URL = Optional.ofNullable(System.getenv("ADDRESS_API_URL")).orElse("lb://address-api/api/v1/address");
+    private final String USER_API_URI = Optional.ofNullable(System.getenv("USER_API_URI")).orElse("lb://user-api/api/v1/user");
+    private final String ADDRESS_API_URI = Optional.ofNullable(System.getenv("ADDRESS_API_URI")).orElse("lb://address-api/api/v1/address");
 
     @Autowired
     private RestTemplate restTemplate;
@@ -108,7 +108,7 @@ public class CompanyService {
 
                     // Sending the request to address microservice
                     ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                            ADDRESS_API_URL + addressId,
+                            ADDRESS_API_URI + "/" + addressId,
                             HttpMethod.GET,
                             requestEntity,
                             AddressDTO.class
@@ -204,7 +204,7 @@ public class CompanyService {
 
             // Sending the request to address microservice
             ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                    ADDRESS_API_URL + addressId,
+                    ADDRESS_API_URI + "/" + addressId,
                     HttpMethod.GET,
                     requestEntity,
                     AddressDTO.class
@@ -250,7 +250,7 @@ public class CompanyService {
 
         // Sending the request to user microservice
         ResponseEntity<RecruiterDTO> responseEntity = restTemplate.exchange(
-                USER_API_URL + userId,
+                USER_API_URI + "/" + userId,
                 HttpMethod.GET,
                 requestEntity,
                 RecruiterDTO.class
