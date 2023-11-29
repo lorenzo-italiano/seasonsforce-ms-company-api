@@ -25,9 +25,15 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         this.jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
     }
 
-    private final String principleAttribute = System.getenv("PRINCIPLE_ATTRIBUTE_NAME");;
+    private final String principleAttribute = System.getenv("PRINCIPLE_ATTRIBUTE_NAME");
     private final String resourceId = System.getenv("RESOURCE_ID");
 
+    /**
+     * Convert a Jwt to an AbstractAuthenticationToken
+     *
+     * @param jwt the jwt to convert
+     * @return the AbstractAuthenticationToken
+     */
     @Override
     public AbstractAuthenticationToken convert(@NonNull Jwt jwt) {
         Collection<GrantedAuthority> authorities = Stream.concat(
@@ -42,10 +48,22 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         );
     }
 
+    /**
+     * Get the principle claim name from the jwt
+     *
+     * @param jwt the jwt
+     * @return the principle claim name
+     */
     private String getPrincipleClaimName(Jwt jwt) {
         return jwt.getClaim(principleAttribute);
     }
 
+    /**
+     * Extract the resource roles from the jwt
+     *
+     * @param jwt the jwt
+     * @return the resource roles
+     */
     private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
         Map<String, Object> resourceAccess;
         Map<String, Object> resource;

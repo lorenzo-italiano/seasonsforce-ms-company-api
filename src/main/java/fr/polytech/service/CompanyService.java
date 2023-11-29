@@ -49,6 +49,7 @@ public class CompanyService {
 
     /**
      * Get all companies.
+     * @return the list of all companies.
      */
     public List<Company> getAllCompanies() {
         logger.info("Getting all companies");
@@ -76,6 +77,10 @@ public class CompanyService {
         return company;
     }
 
+    /**
+     * Get all companies with only their id and name.
+     * @return the list of all companies with only their id and name.
+     */
     public List<CompanyMinimizedDTO> getAllCompaniesMinimized() {
         logger.info("Getting all companies");
         return companyRepository.getAllCompaniesMinimized();

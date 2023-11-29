@@ -101,6 +101,13 @@ public class CompanyController {
         return ResponseEntity.ok(companyService.getAllCompaniesMinimized());
     }
 
+    /**
+     * Get all addresses of the company.
+     *
+     * @param token The token of the recruiter.
+     * @param id    The id of the recruiter.
+     * @return List of all addresses of the company.
+     */
     @GetMapping("/address-list/{id}")
     @Produces(MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<AddressDTO>> getCompanyAddressList(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
@@ -172,7 +179,7 @@ public class CompanyController {
     /**
      * Change the company's logo.
      *
-     * @param id Company id.
+     * @param id   Company id.
      * @param file New logo.
      * @return True if the logo was changed, false otherwise.
      */
@@ -214,7 +221,7 @@ public class CompanyController {
     /**
      * Add a document to the company.
      *
-     * @param id Company id.
+     * @param id   Company id.
      * @param file Document to add.
      * @return True if the document was added, false otherwise.
      */
@@ -250,14 +257,14 @@ public class CompanyController {
     /**
      * Get the private URL of a document.
      *
-     * @param id: The id of the company.
+     * @param id:         The id of the company.
      * @param objectName: The name of the object.
      * @return The private URL of the document.
      */
     @GetMapping("/document/{id}/{objectName}")
     @IsRecruiterInCompanyOrAdminAndDocumentExistsAndBelongsToCompany
     @Produces(MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> getDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName){
+    public ResponseEntity<String> getDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName) {
         try {
             return ResponseEntity.ok(minioService.getPrivateDocumentUrl("documents-" + id.toString(), objectName));
         } catch (MinioException | IOException e) {
@@ -269,14 +276,15 @@ public class CompanyController {
 
     /**
      * Delete a document.
-     * @param id The id of the company.
+     *
+     * @param id         The id of the company.
      * @param objectName The name of the object.
      * @return True if the document was deleted, false otherwise.
      */
     @DeleteMapping("/document/{id}/{objectName}")
     @IsRecruiterInCompanyOrAdminAndDocumentExistsAndBelongsToCompany
     @Produces(MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName, @RequestHeader("Authorization") String token){
+    public ResponseEntity<Boolean> deleteDocument(@PathVariable("id") UUID id, @PathVariable("objectName") String objectName, @RequestHeader("Authorization") String token) {
         try {
             minioService.deleteFileFromPrivateBucket("documents-" + id.toString(), objectName);
 

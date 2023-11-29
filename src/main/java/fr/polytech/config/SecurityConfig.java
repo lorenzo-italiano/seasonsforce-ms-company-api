@@ -17,6 +17,13 @@ public class SecurityConfig {
 
     private final JwtAuthConverter jwtAuthConverter = new JwtAuthConverter();
 
+    /**
+     * Configure the security filter chain
+     *
+     * @param http the http security
+     * @return the security filter chain
+     * @throws Exception if an error occurs
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
