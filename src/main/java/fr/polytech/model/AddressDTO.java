@@ -3,12 +3,24 @@ package fr.polytech.model;
 import java.util.UUID;
 
 public class AddressDTO {
+
     private UUID id;
     private String street;
     private String number;
     private String city;
     private String zipCode;
     private String country;
+
+    public AddressDTO() {
+    }
+
+    public AddressDTO(String street, String number, String city, String zipCode, String country) {
+        this.street = street;
+        this.number = number;
+        this.city = city;
+        this.zipCode = zipCode;
+        this.country = country;
+    }
 
     public UUID getId() {
         return id;
@@ -61,7 +73,6 @@ public class AddressDTO {
     @Override
     public String toString() {
         return "AdresseDTO{" +
-                "id=" + id +
                 ", street='" + street + '\'' +
                 ", number='" + number + '\'' +
                 ", city='" + city + '\'' +

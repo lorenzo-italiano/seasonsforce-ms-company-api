@@ -1,28 +1,30 @@
 package fr.polytech.model;
 
+import java.util.List;
 import java.util.UUID;
 
-public class CompanyDetails {
+// This DTO is used to get data from front and save it as multiple objects
+public class CompanyDetailsDTO {
 
     private UUID id;
-
     private String name;
-
     private String logoUrl;
-
     private String description;
-
     private String employeesNumberRange;
+    private List<AddressDTO> addressList;
+    private String siretNumber;
 
-    private AddressDTO address;
+    private List<String> documentsUrl;
 
-    public CompanyDetails(UUID id, String name, String logoUrl, String description, String employeesNumberRange, AddressDTO address) {
+    public CompanyDetailsDTO(UUID id, String name, String logoUrl, String description, List<AddressDTO> addressList, String employeesNumberRange, String siretNumber, List<String> documentsUrl) {
         this.id = id;
         this.name = name;
         this.logoUrl = logoUrl;
         this.description = description;
         this.employeesNumberRange = employeesNumberRange;
-        this.address = address;
+        this.addressList = addressList;
+        this.siretNumber = siretNumber;
+        this.documentsUrl = documentsUrl;
     }
 
     public UUID getId() {
@@ -65,11 +67,27 @@ public class CompanyDetails {
         this.employeesNumberRange = employeesNumberRange;
     }
 
-    public AddressDTO getAddress() {
-        return address;
+    public List<AddressDTO> getAddressList() {
+        return addressList;
     }
 
-    public void setAddress(AddressDTO address) {
-        this.address = address;
+    public void setAddressList(List<AddressDTO> addressList) {
+        this.addressList = addressList;
+    }
+
+    public String getSiretNumber() {
+        return siretNumber;
+    }
+
+    public void setSiretNumber(String siretNumber) {
+        this.siretNumber = siretNumber;
+    }
+
+    public List<String> getDocumentsUrl() {
+        return documentsUrl;
+    }
+
+    public void setDocumentsUrl(List<String> documentsUrl) {
+        this.documentsUrl = documentsUrl;
     }
 }
