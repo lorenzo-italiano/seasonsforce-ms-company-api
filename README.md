@@ -12,7 +12,7 @@
 
 This is the api company repository for the seasonsforce project's company microservice. It's a Spring Boot application developed in Java.
 
-There's also the `Dockerfile` for the api and the PostgreSQL database.
+There's also the `Dockerfile` for the api, the PostgreSQL database and Minio Container.
 
 ---
 
